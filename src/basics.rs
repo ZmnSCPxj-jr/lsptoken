@@ -66,6 +66,7 @@ pub fn negate_scalar(s: secp256k1::Scalar) -> secp256k1::Scalar {
  * tweak G by multiplication instead of converting secret
  * key to public key, even though they are the same maths.
  */
+pub
 fn capital_g() -> secp256k1::PublicKey {
 	secp256k1::PublicKey::from_slice(
 	&[ 0x02, 0x79, 0xBE, 0x66, 0x7E, 0xF9, 0xDC, 0xBB,
@@ -144,6 +145,35 @@ pub fn validate_dleq<C>( s_ctx: &secp256k1::Secp256k1<C>,
 
 	/* Core validation */
 	e_prime == e
+}
+
+/* Compute `e` for the DLEQ proof.  */
+pub fn calculate_dleq_e<C>( s_ctx: &secp256k1::Secp256k1<C>,
+			    k: &secp256k1::Scalar,
+			    point: secp256k1::PublicKey,
+			    s_times_point: secp256k1::PublicKey,
+			    s_times_g: secp256k1::PublicKey
+			  ) -> secp256k1::Scalar
+	where C: secp256k1::Verification
+{
+	let capital_a = capital_g().mul_tweak(s_ctx, k)
+	.expect("If k is truly random, probability of k == 0 is 1 in ~2^256");
+
+	let capital_b = point.mul_tweak(s_ctx, k)
+	.expect("If k is truly random, probability of k == 0 is 1 in ~2^256");
+
+	dleq_hash(capital_a, capital_b, s_times_g, s_times_point)
+}
+
+/* Compute `d` for the DLEQ proof, given `k` and `signed_e = e * s`.  */
+pub fn calculate_dleq_d( k: &secp256k1::Scalar,
+			 signed_e: secp256k1::Scalar
+		       ) -> secp256k1::Scalar
+{
+	sk_to_scalar(
+		scalar_to_sk(signed_e).add_tweak(k)
+		.expect("Impossible with high probability, assuming s and k were selected at random, and e was SHA256 is in the ROM.")
+	)
 }
 
 /* Compute the HMAC-SHA256 as per RFC-2104.  */
@@ -303,6 +333,60 @@ mod tests {
 			 0x6e, 0x0d, 0xee, 0x0e,
 			 0xc0, 0xcf, 0x97, 0xa1,
 			 0x66, 0x05, 0xac, 0x8b]
+		);
+	}
+
+	fn test_dleq_correctness( k: &str,
+				  s: &str,
+				  p: &str
+				) {
+		let k = scalar(k);
+		let s = scalar(s);
+		let p = point(p);
+
+		let s_ctx = Secp256k1::new();
+
+		let s_times_p = p.clone().mul_tweak(&s_ctx, &s)
+		.expect("s must not be 0.");
+		let s_times_g = capital_g().mul_tweak(&s_ctx, &s)
+		.expect("s must not be 0.");
+
+		let e = calculate_dleq_e(
+			&s_ctx,
+			&k,
+			p.clone(),
+			s_times_p.clone(),
+			s_times_g.clone()
+		);
+		let signed_e = sk_to_scalar(
+			scalar_to_sk(e).mul_tweak(&s)
+			.expect("s != 0")
+		);
+		let d = calculate_dleq_d(&k, signed_e);
+
+		let validate = validate_dleq(
+			&s_ctx,
+			p,
+			s_times_p,
+			s_times_g,
+			d,
+			e
+		);
+
+		assert!(validate);
+	}
+
+	#[test]
+	fn dleq_test_vectors() {
+		test_dleq_correctness(
+			"1111111111111111111111111111111111111111111111111111111111111111",
+			"2222222222222222222222222222222222222222222222222222222222222222",
+			"02407feb4a4b8303baf4f84e29a209e0dcfd62e81f88c8edb7675c5a95d90e5c90"
+		);
+		test_dleq_correctness(
+			"4444444444444444444444444444444444444444444444444444444444444444",
+			"8888888888888888888888888888888888888888888888888888888888888888",
+			"026e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
 		);
 	}
 }
