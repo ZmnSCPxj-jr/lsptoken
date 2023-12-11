@@ -174,11 +174,9 @@ fn request_authorization_step2<C>(s_ctx: &Secp256k1<C>,
  * own crypto.
  */
 pub(crate)
-fn show_authentication_credential<C>( s_ctx: Secp256k1<C>,
-				      challenge: &[u8],
-				      token: types::ServiceToken
-				    ) -> types::AuthenticationCredential
-	where C: Verification
+fn show_authentication_credential( challenge: &[u8],
+				   token: types::ServiceToken
+				 ) -> types::AuthenticationCredential
 {
 	let types::ServiceToken{t, s_times_capital_t} = token;
 
