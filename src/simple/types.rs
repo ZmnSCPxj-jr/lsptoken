@@ -73,3 +73,13 @@ pub(crate) struct AuthenticationCredential {
 	pub(crate) hmac: [u8; 32],
 }
 
+/** Used internally by the authenticator, if the secret
+ * key is stored elsewhere from the machine or process
+ * that accepts the client `authenticationCredential`.,
+ * to store information needed across the call to the
+ * process or machine that holds the secret key.
+ */
+pub(crate) struct AuthenticatorContext {
+	/** The HMAC from the client credential.  */
+	pub(crate) hmac: [u8; 32]
+}
