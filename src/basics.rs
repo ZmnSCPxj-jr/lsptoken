@@ -216,7 +216,6 @@ pub fn hmac_sha256(key: &[u8], msg: &[u8]) -> [u8; 32] {
 #[cfg(test)]
 mod tests {
 	use hex;
-	use secp256k1::All;
 	use secp256k1::Secp256k1;
 	use super::*;
 
