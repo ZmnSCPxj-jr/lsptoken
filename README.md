@@ -1,4 +1,6 @@
 # LSP Token Library
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FZmnSCPxj-jr%2Flsptoken.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FZmnSCPxj-jr%2Flsptoken?ref=badge_shield)
+
 
 ## Motivation
 
@@ -409,3 +411,7 @@ them, as well as generating the service token to be saved on
 the client side.
 
 (TODO) very much a work in progress
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FZmnSCPxj-jr%2Flsptoken.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FZmnSCPxj-jr%2Flsptoken?ref=badge_large)
